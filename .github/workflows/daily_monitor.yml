@@ -3,8 +3,8 @@ name: Daily Naval Monitor
 on:
   schedule:
     - cron: '0 8 * * *' # Runs daily at 8am UTC
-  workflow_dispatch:      # Allows manual run button
-  push:                   # Runs immediately when you save this file
+  workflow_dispatch: # Allows manual run button
+  push:  # Runs immediately when you save this file
     branches:
       - main
       - master
@@ -23,25 +23,46 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
+          # Python 3.9 is compatible with f-strings, which is great.
           python-version: '3.9'
 
       - name: Install Dependencies
-        run: |
-          pip install requests beautifulsoup4 pandas
+        run: pip install requests beautifulsoup4 pandas
 
+      # The script is run from the root directory, creating data/tweets.json and README.md
       - name: Run Monitor Script
         run: python monitor_navies.py
 
       - name: Commit and Push Changes
-        # This step will only run if there are changes to commit
+        # This step is now more robust to files that may or may not exist.
         run: |
-          git config --global user.name 'GitHub Action'
-          git config --global user.email 'action@github.com'
-          git add data/tweets.json README.md
-          # Check if there are changes before committing to avoid errors
+          # 1. Configure Git user identity
+          git config user.name 'GitHub Action'
+          git config user.email 'action@github.com'
+          
+          # 2. Add files ONLY if they exist
+          # The -f flag suppresses errors if files don't exist, but it's cleaner to check.
+          
+          # Check for and add the JSON file
+          if [ -f data/tweets.json ]; then
+            git add data/tweets.json
+          else
+            echo "data/tweets.json not found (may be first run or no new data found). Skipping add."
+          fi
+          
+          # Check for and add the README file (this should always exist after the script runs)
+          if [ -f README.md ]; then
+            git add README.md
+          else
+            echo "README.md not found. This is unexpected."
+          fi
+          
+          # 3. Check for pending changes before committing
+          # git status -s checks for changes; if the output is non-empty, there are changes.
           if [[ -n $(git status -s) ]]; then
-            git commit -m "Automated Data Update: $(date +'%Y-%m-%d')"
+            echo "Changes detected. Committing..."
+            git commit -m "🤖 Automated Data Update: $(date +'%Y-%m-%d') [skip ci]"
             git push
           else
-            echo "No changes to commit today."
+            echo "No changes detected to commit."
           fi

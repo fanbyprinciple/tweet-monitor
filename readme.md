@@ -11,3 +11,5 @@ Scroll to "Workflow permissions"
 Select "Read and write permissions"
 
 Click Save
+
+![](2025-11-29-12-26-56.png)

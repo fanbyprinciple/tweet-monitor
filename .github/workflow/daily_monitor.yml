@@ -2,9 +2,12 @@ name: Daily Naval Monitor
 
 on:
   schedule:
-    # Runs at 08:00 UTC every day
-    - cron: '0 8 * * *'
-  workflow_dispatch: # Allows you to run it manually from the Actions tab for testing
+    - cron: '0 8 * * *' # Runs daily at 8am UTC
+  workflow_dispatch:      # Allows manual run button
+  push:                   # Runs immediately when you save this file
+    branches:
+      - main
+      - master
 
 permissions:
   contents: write
@@ -24,14 +27,21 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install -r requirements.txt
+          pip install requests beautifulsoup4 pandas
 
       - name: Run Monitor Script
         run: python monitor_navies.py
 
       - name: Commit and Push Changes
+        # This step will only run if there are changes to commit
         run: |
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
           git add data/tweets.json README.md
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Automated Data Update: $(date +'%Y-%m-%d')" && git push)
+          # Check if there are changes before committing to avoid errors
+          if [[ -n $(git status -s) ]]; then
+            git commit -m "Automated Data Update: $(date +'%Y-%m-%d')"
+            git push
+          else
+            echo "No changes to commit today."
+          fi

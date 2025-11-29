@@ -99,7 +99,14 @@ This repository tracks open-source intelligence on Russian and Chinese naval act
     for t in display_tweets:
         # Format the link to look nice
         clean_text = t['text'].replace(" - Twitter", "").replace("Twitter", "")[:60] + "..."
-        markdown_content += f"| {t['date']} | {t['keyword'].replace(' OR ', '/').replace('\"', '')} | [{clean_text}]({t['url']}) |\n"
+        cleaned_keyword = t['keyword'].replace(' OR ', '/').replace('"', '')
+
+        markdown_content += "| {0} | {1} | [{2}]({3}) |\n".format(
+            t['date'],
+            cleaned_keyword,
+            clean_text,
+            t['url']
+        )
         
     markdown_content += """
 ---

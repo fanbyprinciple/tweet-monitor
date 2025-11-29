@@ -1,0 +1,11 @@
+name: Check Workflow Visibility
+
+# Trigger the workflow on every push to any branch
+on: [push]
+
+jobs:
+  check_visibility:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say Hello
+        run: echo "The workflow is running successfully!"
